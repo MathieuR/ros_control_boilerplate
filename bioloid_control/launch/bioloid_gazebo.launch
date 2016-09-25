@@ -1,23 +1,43 @@
 <launch>
 
+  <!-- GDB functionality -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
   <!-- Load example URDF -->
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find bioloid_typea_description)/typea.xacro'" />
 
-<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="use_gui" value="TRUE"/>
-  </node>
+<!--  <group ns="typea"> -->
 
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="worlds/empty.world"/>
-    <arg name="paused" value="true"/>
-  </include>
-  
-  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find bioloid_typea_description)/typea.urdf -urdf -model typea -z 0.23" />
+    <!-- Load controller settings -->
+    <rosparam file="$(find ros_control_boilerplate)/bioloid_control/config/bioloid_controllers_gazebo.yaml" command="load"/>
 
-  <node name="dummy_imu_frame_broadcaster" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 odom imu_link 1000"/>
+    <!-- Load controller manager -->
+    <node name="control_spawner" pkg="controller_manager" type="spawner" respawn="false"
+	output="screen" ns="/typea" args="joint_state_controller
+	l_shoulder_swing_joint_position_controller
+    l_shoulder_lateral_joint_position_controller
+    l_elbow_joint_position_controller
+    r_shoulder_swing_joint_position_controller
+    r_shoulder_lateral_joint_position_controller
+    r_elbow_joint_position_controller
+    l_hip_twist_joint_position_controller
+    l_hip_lateral_joint_position_controller
+    l_hip_swing_joint_position_controller
+    l_knee_joint_position_controller
+    l_ankle_swing_joint_position_controller
+    l_ankle_lateral_joint_position_controller
+    r_hip_twist_joint_position_controller
+    r_hip_lateral_joint_position_controller
+    r_hip_swing_joint_position_controller
+    r_knee_joint_position_controller
+    r_ankle_swing_joint_position_controller
+    r_ankle_lateral_joint_position_controller "/>
 
-  <include file="$(find ros_control_boilerplate)/bioloid_control/launch/bioloid_simulation.launch"/>
-
-  <node name="typea_walker" pkg="bioloid_typea_gazebo" type="walker.py" output="screen"/>
+    <!-- Convert joint states to /tf tranforms -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen">
+    </node>
+ <!--  </group> -->
 
 </launch>
