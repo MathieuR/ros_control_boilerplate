@@ -109,23 +109,23 @@ double BioloidHWInterface::joint_reset_rad[NUMBER_OF_JOINTS] =
 const int BioloidHWInterface::directionSign[NUMBER_OF_JOINTS] =
 {
     1,        //r_shoulder_swing_joint
-    -1,        //l_shoulder_swing_joint
+    1,        //l_shoulder_swing_joint
     1,        //r_shoulder_lateral_joint
-    -1,        //l_shoulder_lateral_joint
+    1,        //l_shoulder_lateral_joint
     1,        //r_elbow_joint
-    -1,        //l_elbow_joint
-    -1,        //r_hip_twist_joint
+    1,        //l_elbow_joint
+    1,        //r_hip_twist_joint
     1,        //l_hip_twist_joint
-    -1,        //r_hip_lateral_joint
+    1,        //r_hip_lateral_joint
     1,        //l_hip_lateral_joint
-    -1,        //r_hip_swing_joint
+    1,        //r_hip_swing_joint
     1,        //l_hip_swing_joint
-    1,        //r_knee_joint
+    -1,        //r_knee_joint
     -1,        //l_knee_joint
     1,        //r_ankle_swing_joint
-    -1,        //l_ankle_swing_joint
+    1,        //l_ankle_swing_joint
     1,        //r_ankle_lateral_joint
-    -1,        //l_ankle_lateral_joint
+    1,        //l_ankle_lateral_joint
 };
 
 void BioloidHWInterfaceSigintHandler(int sig)
@@ -682,9 +682,9 @@ void BioloidHWInterface::read(ros::Duration &elapsed_time)
     {
     	for (joint_id = 0; joint_id < num_joints_; ++joint_id) {
         {
-        	joint_position_[joint_id] = /* directionSign[joint_id] * */ axPositionToRad(xfer.values[0][joint_id]) -
+                joint_position_[joint_id] = directionSign[joint_id] * axPositionToRad(xfer.values[0][joint_id]) -
         			joint_reset_rad[joint_id];
-        	joint_velocity_[joint_id] = axSpeedToRadPerSec(xfer.values[1][joint_id]);
+                joint_velocity_[joint_id] = axSpeedToRadPerSec(xfer.values[1][joint_id]);
             /* vel_[id_index] = (new_pos - pos_[id_index])/(double)period.toSec(); */
         	joint_effort_[joint_id] = axTorqueToDecimal(xfer.values[2][joint_id]);
 #if 0
@@ -742,7 +742,7 @@ void BioloidHWInterface::write(ros::Duration &elapsed_time)
 #endif
 	xfer.dxlIDs[joint_id] = joint_id + 1;
 
-	xfer.values[0][joint_id] = radToAxPosition(/*directionSign[joint_id] * */
+	xfer.values[0][joint_id] = radToAxPosition(directionSign[joint_id] *
 			joint_position_command_[joint_id]  +
 			joint_reset_rad[joint_id]);
 
