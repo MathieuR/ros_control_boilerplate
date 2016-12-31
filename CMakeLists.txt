@@ -4,6 +4,9 @@ project(ros_control_boilerplate)
 # C++ 11
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall ${CMAKE_CXX_FLAGS}")
 
+# By default use debug output for joint limit
+set(CMAKE_CXX_FLAGS "-DUSE_JOINT_LIMIT_DEBUG ${CMAKE_CXX_FLAGS}")
+
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   hardware_interface
