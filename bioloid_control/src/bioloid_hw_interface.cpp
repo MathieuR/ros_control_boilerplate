@@ -82,30 +82,6 @@ const std::map<int, bool> BioloidHWInterface::addressWordMap =
     {AX12_PUNCH_L, true}
 };
 
-#if 0
-double BioloidHWInterface::joint_reset_rad[NUMBER_OF_JOINTS] =
-{
-    0,        //r_shoulder_swing_joint
-    0,        //l_shoulder_swing_joint
-    0,        //r_shoulder_lateral_joint
-    0,        //l_shoulder_lateral_joint
-    0,        //r_elbow_joint
-    0,        //l_elbow_joint
-    -0.8,        //r_hip_twist_joint
-    0.8,        //l_hip_twist_joint
-    0,        //r_hip_lateral_joint
-    0,        //l_hip_lateral_joint
-    0,        //r_hip_swing_joint
-    0,        //l_hip_swing_joint
-    0,        //r_knee_joint
-    0,        //l_knee_joint
-    0,        //r_ankle_swing_joint
-    0,        //l_ankle_swing_joint
-    0,        //r_ankle_lateral_joint
-    0,        //l_ankle_lateral_joint
-};
-#endif
-
 const int BioloidHWInterface::directionSign[NUMBER_OF_JOINTS] =
 {
     1,        //r_shoulder_swing_joint
@@ -607,12 +583,19 @@ BioloidHWInterface::BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_mo
 		else
 			joint_reset_rad[joint_id] = 0;
 		HW_DBG("reset angle: #%d: %g", (int)(joint_id + 1), joint_reset_rad[joint_id]);
+
+		/* initialise dynamixel packet */
+		xfer.dxlIDs[joint_id] = joint_id + 1;
 	}
 
 	if (Initialize() != ROBOTHW_OK) {
 		ROS_ERROR("Initialization failed.");
 		BioloidHWInterfaceSigintHandler(0);
 	}
+
+	// Resize vectors
+    joint_position_prev_.resize(num_joints_, 0.0);
+
 	ROS_INFO_NAMED("bioloid_hw_interface", "BioloidHWInterface Ready.");
 }
 
@@ -656,7 +639,6 @@ float BioloidHWInterface::axTorqueToDecimal(int oldValue)
 
 void BioloidHWInterface::read(ros::Duration &elapsed_time)
 {
-    XferSyncAX xfer;
     std::size_t joint_id;
   // ----------------------------------------------------
   // ----------------------------------------------------
@@ -668,10 +650,8 @@ void BioloidHWInterface::read(ros::Duration &elapsed_time)
 		joint_position_command_[joint_id] = std::numeric_limits<double>::quiet_NaN();
 
 	    joint_position_[joint_id] = std::numeric_limits<double>::quiet_NaN();
-		joint_velocity_[joint_id] = std::numeric_limits<double>::quiet_NaN();
-		joint_effort_[joint_id] = std::numeric_limits<double>::quiet_NaN();
-
-		xfer.dxlIDs[joint_id] = joint_id + 1;
+		//joint_velocity_[joint_id] = std::numeric_limits<double>::quiet_NaN();
+		//joint_effort_[joint_id] = std::numeric_limits<double>::quiet_NaN();
 	}
 
     // Get position, speed and torque with a sync_read command
@@ -680,20 +660,21 @@ void BioloidHWInterface::read(ros::Duration &elapsed_time)
 
     if (receiveSyncFromAX(&xfer) == ROBOTHW_OK)
     {
-    	for (joint_id = 0; joint_id < num_joints_; ++joint_id) {
+        for (joint_id = 0; joint_id < num_joints_; ++joint_id)
         {
-                joint_position_[joint_id] = directionSign[joint_id] * axPositionToRad(xfer.values[0][joint_id]) -
-        			joint_reset_rad[joint_id];
-                joint_velocity_[joint_id] = axSpeedToRadPerSec(xfer.values[1][joint_id]);
+            joint_position_[joint_id] = directionSign[joint_id] *
+                                        axPositionToRad(xfer.values[0][joint_id]) -
+                                        joint_reset_rad[joint_id];
+                //joint_velocity_[joint_id] = axSpeedToRadPerSec(xfer.values[1][joint_id]);
             /* vel_[id_index] = (new_pos - pos_[id_index])/(double)period.toSec(); */
-        	joint_effort_[joint_id] = axTorqueToDecimal(xfer.values[2][joint_id]);
+        	//joint_effort_[joint_id] = axTorqueToDecimal(xfer.values[2][joint_id]);
 #if 0
     		if (joint_position_[joint_id] &&
     				joint_position_[joint_id] != std::numeric_limits<double>::quiet_NaN() &&
 					(joint_position_[joint_id] > 0.1 || joint_position_[joint_id] < -0.1))
     			HW_DBG("Pos #%d: %g", (int)(joint_id + 1), joint_position_[joint_id]);
 #endif
-        	}
+
         }
     }
   //
@@ -704,7 +685,6 @@ void BioloidHWInterface::read(ros::Duration &elapsed_time)
 
 void BioloidHWInterface::write(ros::Duration &elapsed_time)
 {
-  XferSyncAX xfer;
   xfer.startAddress = AX12_GOAL_POSITION_L;
   xfer.numOfValuesPerMotor = 1;
 
@@ -740,12 +720,21 @@ void BioloidHWInterface::write(ros::Duration &elapsed_time)
 		HW_DBG("CCmd #%d: %g", (int)(joint_id + 1), position_joint_interface_.getHandle(joint_names_[joint_id]).getCommand());
 	}
 #endif
-	xfer.dxlIDs[joint_id] = joint_id + 1;
 
 	xfer.values[0][joint_id] = radToAxPosition(directionSign[joint_id] *
 			joint_position_command_[joint_id]  +
 			joint_reset_rad[joint_id]);
 
+	// Calculate velocity based on change in positions
+	  if (elapsed_time.toSec() > 0)
+	  {
+	    joint_velocity_[joint_id] = (joint_position_[joint_id] - joint_position_prev_[joint_id]) / elapsed_time.toSec();
+	  }
+	  else
+	    joint_velocity_[joint_id] = 0;
+
+	  // Save last position
+	  joint_position_prev_[joint_id] = joint_position_[joint_id];
     //HW_DBG("AX value: %d", xfer.values[0][joint_id]);
   }
 

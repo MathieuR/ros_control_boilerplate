@@ -48,7 +48,7 @@
 
 #define NUMBER_OF_JOINTS 18
 #define FLOAT_PRECISION_THRESH 0.00001
-#define NUMBER_OF_FIELD_PER_MOTOR 3
+#define NUMBER_OF_FIELD_PER_MOTOR 1
 
 // Return code
 #define ROBOTHW_OK 0
@@ -147,6 +147,11 @@ public:
   float axPositionToRad(int oldValue);
   float axTorqueToDecimal(int oldValue);
 
+  /* Dynamixel packet */
+  XferSyncAX xfer;
+
+  // For position controller to estimate velocity
+  std::vector<double> joint_position_prev_;
 };  // class
 
 }  // namespace
