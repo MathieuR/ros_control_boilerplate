@@ -43,8 +43,8 @@
 #include <ros_control_boilerplate/generic_hw_interface.h>
 
 // Dynamixel
-#include <dynamixel_syncread.h>
 #include <ax12ControlTableMacros.h>
+#include <dynamixel_syncread.h>
 
 #define NUMBER_OF_JOINTS 18
 #define FLOAT_PRECISION_THRESH 0.00001
@@ -66,13 +66,14 @@
 #ifdef DEBUG
 #define HW_DBG ROS_INFO
 #else
-#define HW_DBG(...) do {} while (0)
+#define HW_DBG(...)                                                                                                    \
+  do                                                                                                                   \
+  {                                                                                                                    \
+  } while (0)
 #endif
-
 
 namespace bioloid_control
 {
-
 #define NUMBER_OF_JOINTS 18
 
 // Return code
@@ -89,19 +90,19 @@ namespace bioloid_control
 
 typedef struct _XferAX
 {
-	short dxlID;
-	short address;
-	short value;
-	bool Success;
-}XferAX;
+  short dxlID;
+  short address;
+  short value;
+  bool Success;
+} XferAX;
 
 typedef struct _XferSyncAX
 {
-	short dxlIDs[NUMBER_OF_JOINTS];
-	short startAddress;
-	short numOfValuesPerMotor;
-	short values[NUMBER_OF_FIELD_PER_MOTOR][NUMBER_OF_JOINTS];
-	bool Success;
+  short dxlIDs[NUMBER_OF_JOINTS];
+  short startAddress;
+  short numOfValuesPerMotor;
+  short values[NUMBER_OF_FIELD_PER_MOTOR][NUMBER_OF_JOINTS];
+  bool Success;
 } XferSyncAX;
 
 /// \brief Hardware interface for a robot
@@ -112,7 +113,7 @@ public:
    * \brief Constructor
    * \param nh - Node handle for topics.
    */
-  BioloidHWInterface(ros::NodeHandle& nh, urdf::Model* urdf_model = NULL);
+  BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model = NULL);
 
   /** \brief Read the state from the robot hardware. */
   virtual void read(ros::Duration &elapsed_time);

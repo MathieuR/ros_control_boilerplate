@@ -36,8 +36,8 @@
    Desc:   Example ros_control main() entry point for controlling robots in ROS
 */
 
-#include <ros_control_boilerplate/generic_hw_control_loop.h>
 #include <bioloid_control/bioloid_hw_interface.h>
+#include <ros_control_boilerplate/generic_hw_control_loop.h>
 
 int main(int argc, char** argv)
 {
@@ -50,8 +50,8 @@ int main(int argc, char** argv)
   spinner.start();
 
   // Create the hardware interface specific to your robot
-  boost::shared_ptr<bioloid_control::BioloidHWInterface> bioloid_hw_interface
-    (new bioloid_control::BioloidHWInterface(nh));
+  boost::shared_ptr<bioloid_control::BioloidHWInterface> bioloid_hw_interface(
+      new bioloid_control::BioloidHWInterface(nh));
   bioloid_hw_interface->init();
 
   // Start the control loop
