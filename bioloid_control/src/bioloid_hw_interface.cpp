@@ -652,11 +652,7 @@ void BioloidHWInterface::read(ros::Duration &elapsed_time)
   // FILL IN YOUR READ COMMAND FROM USB/ETHERNET/ETHERCAT/SERIAL ETC HERE
   for (joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
-    joint_position_command_[joint_id] = std::numeric_limits<double>::quiet_NaN();
-
     joint_position_[joint_id] = std::numeric_limits<double>::quiet_NaN();
-    // joint_velocity_[joint_id] = std::numeric_limits<double>::quiet_NaN();
-    // joint_effort_[joint_id] = std::numeric_limits<double>::quiet_NaN();
   }
 
   // Get position, speed and torque with a sync_read command
@@ -712,7 +708,6 @@ void BioloidHWInterface::write(ros::Duration &elapsed_time)
 #if 0
 		HW_DBG("Join #%d is NAN, set to %g", (int)(joint_id + 1), joint_position_[joint_id]);
 #endif
-      joint_position_command_[joint_id] = joint_position_[joint_id];
     }
 #if 0
 	//joint_position_[joint_id] = joint_position_command_[joint_id];
