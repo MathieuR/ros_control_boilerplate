@@ -115,6 +115,9 @@ public:
    */
   BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model = NULL);
 
+  /** \brief Initialize the robot hardware interface */
+  virtual void init();
+
   /** \brief Read the state from the robot hardware. */
   virtual void read(ros::Duration &elapsed_time);
 
@@ -148,11 +151,16 @@ public:
   float axPositionToRad(int oldValue);
   float axTorqueToDecimal(int oldValue);
 
+protected:
+
   /* Dynamixel packet */
   XferSyncAX xfer;
 
   // For position controller to estimate velocity
   std::vector<double> joint_position_prev_;
+
+  // Name of this class
+  std::string name_;
 };  // class
 
 }  // namespace

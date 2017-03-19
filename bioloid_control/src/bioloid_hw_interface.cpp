@@ -559,6 +559,7 @@ int BioloidHWInterface::Initialize(void)
 
 BioloidHWInterface::BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
   : ros_control_boilerplate::GenericHWInterface(nh, urdf_model)
+, name_("bioloid_hw_interface")
 {
   // Load rosparams
   ros::NodeHandle rpnh(nh, "hardware_interface");
@@ -583,16 +584,6 @@ BioloidHWInterface::BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_mo
     xfer.dxlIDs[joint_id] = joint_id + 1;
   }
 
-  if (Initialize() != ROBOTHW_OK)
-  {
-    ROS_ERROR("Initialization failed.");
-    BioloidHWInterfaceSigintHandler(0);
-  }
-
-  // Resize vectors
-  joint_position_prev_.resize(num_joints_, 0.0);
-
-  ROS_INFO_NAMED("bioloid_hw_interface", "BioloidHWInterface Ready.");
 }
 
 float BioloidHWInterface::axSpeedToRadPerSec(int oldValue)
@@ -631,6 +622,24 @@ float BioloidHWInterface::axTorqueToDecimal(int oldValue)
     return newValue;
   else
     return -newValue;
+}
+
+
+void BioloidHWInterface::init()
+{
+  // Call parent class version of this function
+  GenericHWInterface::init();
+
+  if (Initialize() != ROBOTHW_OK)
+  {
+    ROS_ERROR("Initialization failed.");
+    BioloidHWInterfaceSigintHandler(0);
+  }
+
+  // Resize vectors
+  joint_position_prev_.resize(num_joints_, 0.0);
+
+  ROS_INFO_NAMED(name_, "BioloidHWInterface Ready.");
 }
 
 void BioloidHWInterface::read(ros::Duration &elapsed_time)
