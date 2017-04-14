@@ -478,6 +478,8 @@ int BioloidHWInterface::Initialize(void)
     return ROBOTHW_DXL_INIT_ERROR;
   }
 
+  ros::Duration(1.0).sleep();
+
   // Find motors with IDs [1 to NUM_OF_MOTORS]
   for (int dxlID = 1; dxlID <= NUMBER_OF_JOINTS; ++dxlID)
   {
@@ -491,6 +493,7 @@ int BioloidHWInterface::Initialize(void)
     {
       ROS_WARN("PING actuator ID %02d:...[FAILED]", dxlID);
     }
+    ros::Duration(0.5).sleep();
   }
 
   if (numOfConnectedMotors != NUMBER_OF_JOINTS)
