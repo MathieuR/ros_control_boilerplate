@@ -41,6 +41,8 @@
 #define BIOLOID_CONTROL__BIOLOID_HW_INTERFACE_H
 
 #include <ros_control_boilerplate/generic_hw_interface.h>
+#include <navio/navio_led.h>
+#include <std_msgs/Int32.h>
 
 // Dynamixel
 #include <ax12ControlTableMacros.h>
@@ -158,6 +160,9 @@ protected:
 
   // For position controller to estimate velocity
   std::vector<double> joint_position_prev_;
+
+  std_msgs::Int32 led_msg;
+  ros::Publisher navio_led_pub_;
 
   // Name of this class
   std::string name_;

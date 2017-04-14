@@ -584,6 +584,12 @@ BioloidHWInterface::BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_mo
     xfer.dxlIDs[joint_id] = joint_id + 1;
   }
 
+  navio_led_pub_ = rpnh.advertise<std_msgs::Int32>("navio_led", 1);
+
+  // Set LED
+  led_msg.data = LED_YELLOW;
+  navio_led_pub_.publish(led_msg);
+
 }
 
 float BioloidHWInterface::axSpeedToRadPerSec(int oldValue)
@@ -640,6 +646,10 @@ void BioloidHWInterface::init()
   joint_position_prev_.resize(num_joints_, 0.0);
 
   ROS_INFO_NAMED(name_, "BioloidHWInterface Ready.");
+
+  // Set LED
+  led_msg.data = LED_GREEN;
+  navio_led_pub_.publish(led_msg);
 }
 
 void BioloidHWInterface::read(ros::Duration &elapsed_time)

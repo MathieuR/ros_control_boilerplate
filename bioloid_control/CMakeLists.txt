@@ -1,6 +1,9 @@
+find_package(navio REQUIRED)
+
 include_directories(
   include/
   src/usb2ax
+  ${navio_INCLUDE_DIRS}
 )
 
 # Bioloid Hardware Interface
