@@ -90,16 +90,16 @@ const int BioloidHWInterface::directionSign[NUMBER_OF_JOINTS] = {
   1,   // l_elbow_joint
   1,   // r_hip_twist_joint
   1,   // l_hip_twist_joint
-  1,   // r_hip_lateral_joint
-  1,   // l_hip_lateral_joint
+  -1,   // r_hip_lateral_joint
+  -1,   // l_hip_lateral_joint
   1,   // r_hip_swing_joint
   1,   // l_hip_swing_joint
   -1,  // r_knee_joint
   -1,  // l_knee_joint
   1,   // r_ankle_swing_joint
   1,   // l_ankle_swing_joint
-  1,   // r_ankle_lateral_joint
-  1,   // l_ankle_lateral_joint
+  -1,   // r_ankle_lateral_joint
+  -1,   // l_ankle_lateral_joint
 };
 
 void BioloidHWInterfaceSigintHandler(int sig)
