@@ -147,6 +147,8 @@ public:
    */
   double joint_reset_rad[NUMBER_OF_JOINTS];
 
+  double joint_dir_sign[NUMBER_OF_JOINTS];
+
   static const int directionSign[NUMBER_OF_JOINTS];
 
   float axSpeedToRadPerSec(int oldValue);

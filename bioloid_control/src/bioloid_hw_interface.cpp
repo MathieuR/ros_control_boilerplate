@@ -45,61 +45,40 @@
 namespace bioloid_control
 {
 // C++11 init. style
-const std::map<int, bool> BioloidHWInterface::addressWordMap = { /* register offset ; field length (false = 1 bytes,
-                                                                    true = 2 bytes) */
-                                                                 { AX12_MODEL_NUMBER_L, true },
-                                                                 { AX12_FIRMWARE_VERSION, false },
-                                                                 { AX12_ID, false },
-                                                                 { AX12_BAUD_RATE, false },
-                                                                 { AX12_RETURN_DELAY_TIME, false },
-                                                                 { AX12_CW_ANGLE_LIMIT_L, true },
-                                                                 { AX12_CCW_ANGLE_LIMIT_L, true },
-                                                                 { AX12_HIGH_LIMIT_TEMPERATURE, false },
-                                                                 { AX12_LOW_LIMIT_VOLTAGE, false },
-                                                                 { AX12_HIGH_LIMIT_VOLTAGE, false },
-                                                                 { AX12_MAX_TORQUE_L, true },
-                                                                 { AX12_STATUS_RETURN_LEVEL, false },
-                                                                 { AX12_ALARM_LED, false },
-                                                                 { AX12_ALARM_SHUTDOWN, false },
-                                                                 { AX12_TORQUE_ENABLE, false },
-                                                                 { AX12_LED, false },
-                                                                 { AX12_CW_COMPLIANCE_MARGIN, false },
-                                                                 { AX12_CCW_COMPLIANCE_MARGIN, false },
-                                                                 { AX12_CW_COMPLIANCE_SLOPE, false },
-                                                                 { AX12_CCW_COMPLIANCE_SLOPE, false },
-                                                                 { AX12_GOAL_POSITION_L, true },
-                                                                 { AX12_MOVING_SPEED_L, true },
-                                                                 { AX12_TORQUE_LIMIT_L, true },
-                                                                 { AX12_PRESENT_POSITION_L, true },
-                                                                 { AX12_PRESENT_SPEED_L, true },
-                                                                 { AX12_PRESENT_LOAD_L, true },
-                                                                 { AX12_PRESENT_VOLTAGE, false },
-                                                                 { AX12_PRESENT_TEMPERATURE, false },
-                                                                 { AX12_REGISTERED, false },
-                                                                 { AX12_MOVING, false },
-                                                                 { AX12_LOCK, false },
-                                                                 { AX12_PUNCH_L, true }
-};
-
-const int BioloidHWInterface::directionSign[NUMBER_OF_JOINTS] = {
-  1,   // r_shoulder_swing_joint
-  1,   // l_shoulder_swing_joint
-  1,   // r_shoulder_lateral_joint
-  1,   // l_shoulder_lateral_joint
-  1,   // r_elbow_joint
-  1,   // l_elbow_joint
-  1,   // r_hip_twist_joint
-  1,   // l_hip_twist_joint
-  -1,   // r_hip_lateral_joint
-  -1,   // l_hip_lateral_joint
-  1,   // r_hip_swing_joint
-  1,   // l_hip_swing_joint
-  -1,  // r_knee_joint
-  -1,  // l_knee_joint
-  1,   // r_ankle_swing_joint
-  1,   // l_ankle_swing_joint
-  -1,   // r_ankle_lateral_joint
-  -1,   // l_ankle_lateral_joint
+const std::map<int, bool> BioloidHWInterface::addressWordMap = {
+	/* register offset ; field length (false = 1 bytes, true = 2 bytes) */
+	{ AX12_MODEL_NUMBER_L, true },
+	{ AX12_FIRMWARE_VERSION, false },
+	{ AX12_ID, false },
+	{ AX12_BAUD_RATE, false },
+	{ AX12_RETURN_DELAY_TIME, false },
+	{ AX12_CW_ANGLE_LIMIT_L, true },
+	{ AX12_CCW_ANGLE_LIMIT_L, true },
+	{ AX12_HIGH_LIMIT_TEMPERATURE, false },
+	{ AX12_LOW_LIMIT_VOLTAGE, false },
+	{ AX12_HIGH_LIMIT_VOLTAGE, false },
+	{ AX12_MAX_TORQUE_L, true },
+	{ AX12_STATUS_RETURN_LEVEL, false },
+	{ AX12_ALARM_LED, false },
+	{ AX12_ALARM_SHUTDOWN, false },
+	{ AX12_TORQUE_ENABLE, false },
+	{ AX12_LED, false },
+	{ AX12_CW_COMPLIANCE_MARGIN, false },
+	{ AX12_CCW_COMPLIANCE_MARGIN, false },
+	{ AX12_CW_COMPLIANCE_SLOPE, false },
+	{ AX12_CCW_COMPLIANCE_SLOPE, false },
+	{ AX12_GOAL_POSITION_L, true },
+	{ AX12_MOVING_SPEED_L, true },
+	{ AX12_TORQUE_LIMIT_L, true },
+	{ AX12_PRESENT_POSITION_L, true },
+	{ AX12_PRESENT_SPEED_L, true },
+	{ AX12_PRESENT_LOAD_L, true },
+	{ AX12_PRESENT_VOLTAGE, false },
+	{ AX12_PRESENT_TEMPERATURE, false },
+	{ AX12_REGISTERED, false },
+	{ AX12_MOVING, false },
+	{ AX12_LOCK, false },
+	{ AX12_PUNCH_L, true }
 };
 
 void BioloidHWInterfaceSigintHandler(int sig)
@@ -568,6 +547,7 @@ BioloidHWInterface::BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_mo
   ros::NodeHandle rpnh(nh, "hardware_interface");
   std::size_t error = 0;
   double reset_angle;
+  double dir_sign;
 
   error += !rosparam_shortcuts::get(name_, rpnh, "joints", joint_names_);
   rosparam_shortcuts::shutdownIfError(name_, error);
@@ -576,7 +556,6 @@ BioloidHWInterface::BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_mo
   ros::NodeHandle rpnhra(nh, "resetangle");
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
-    joint_names_[joint_id];
     if (rosparam_shortcuts::get(name_, rpnhra, joint_names_[joint_id], reset_angle))
       joint_reset_rad[joint_id] = reset_angle;
     else
@@ -585,6 +564,16 @@ BioloidHWInterface::BioloidHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_mo
 
     /* initialise dynamixel packet */
     xfer.dxlIDs[joint_id] = joint_id + 1;
+  }
+
+  ros::NodeHandle rpnhrb(nh, "dirangle");
+  for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
+  {
+    if (rosparam_shortcuts::get(name_, rpnhrb, joint_names_[joint_id], dir_sign))
+	joint_dir_sign[joint_id] = dir_sign;
+    else
+	joint_dir_sign[joint_id] = 1;
+    HW_DBG("direction: #%d: %g", (int)(joint_id + 1), joint_dir_sign[joint_id]);
   }
 
   navio_led_pub_ = rpnh.advertise<std_msgs::Int32>("navio_led", 1);
@@ -677,7 +666,7 @@ void BioloidHWInterface::read(ros::Duration &elapsed_time)
     for (joint_id = 0; joint_id < num_joints_; ++joint_id)
     {
       joint_position_[joint_id] =
-          directionSign[joint_id] * axPositionToRad(xfer.values[0][joint_id]) - joint_reset_rad[joint_id];
+          joint_dir_sign[joint_id] * axPositionToRad(xfer.values[0][joint_id]) - joint_reset_rad[joint_id];
 // joint_velocity_[joint_id] = axSpeedToRadPerSec(xfer.values[1][joint_id]);
 /* vel_[id_index] = (new_pos - pos_[id_index])/(double)period.toSec(); */
 // joint_effort_[joint_id] = axTorqueToDecimal(xfer.values[2][joint_id]);
@@ -734,7 +723,7 @@ void BioloidHWInterface::write(ros::Duration &elapsed_time)
 #endif
 
     xfer.values[0][joint_id] =
-        radToAxPosition(directionSign[joint_id] * joint_position_command_[joint_id] + joint_reset_rad[joint_id]);
+        radToAxPosition(joint_dir_sign[joint_id] * joint_position_command_[joint_id] + joint_reset_rad[joint_id]);
 
     // Calculate velocity based on change in positions
     if (elapsed_time.toSec() > 0)
