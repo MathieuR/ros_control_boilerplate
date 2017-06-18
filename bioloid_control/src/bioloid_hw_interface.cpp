@@ -449,6 +449,7 @@ int BioloidHWInterface::Initialize(void)
   int deviceIndex = 0;
   int baudNum = 1;
   int numOfConnectedMotors = 0;
+  int numOfConnectedSensorBoard = 0;
 
   // Initialise comms
   if (dxl_initialize(deviceIndex, baudNum) == 0)
@@ -534,6 +535,30 @@ int BioloidHWInterface::Initialize(void)
   else
     return ROBOTHW_ERROR_RESET;
 
+
+	// Find sensor boards
+	for (int dxlID = SENSOR_BOARD_ID_START; dxlID <= SENSOR_BOARD_MAX; ++dxlID)
+	{
+		dxl_ping(dxlID);
+		if (dxl_get_result() == COMM_RXSUCCESS)
+		{
+			++numOfConnectedSensorBoard;
+			ROS_INFO("PING sensor ID %02d:...[OK]", dxlID);
+		}
+		else
+		{
+			ROS_WARN("PING sensor ID %02d:...[FAILED]", dxlID);
+		}
+		ros::Duration(0.5).sleep();
+	}
+#if 0
+	if (numOfConnectedSensorBoard != SENSOR_BOARD_MAX)
+	{
+		ROS_INFO("%d sensor board connected.", numOfConnectedSensorBoard);
+		ROS_ERROR("Number of sensor board required %d", SENSOR_BOARD_MAX);
+		return ROBOTHW_INV_SENSOR_NB;
+	}
+#endif
   ROS_INFO("Robot HW init done.");
 
   return ROBOTHW_OK;
